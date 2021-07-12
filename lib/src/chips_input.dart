@@ -11,6 +11,10 @@ typedef ChipsInputSuggestions<T> = FutureOr<List<T>> Function(String query);
 typedef ChipSelected<T> = void Function(T data, bool selected);
 typedef ChipsBuilder<T> = Widget Function(
     BuildContext context, ChipsInputState<T> state, T data);
+typedef SuggestionListBuilder = Widget Function(BuildContext, Widget);
+
+Widget _defaultSuggestionListBuilder(context, child) =>
+    Material(child: child, elevation: 4.0);
 
 const kObjectReplacementChar = 0xFFFD;
 
@@ -50,6 +54,7 @@ class ChipsInput<T> extends StatefulWidget {
     this.autofocus = false,
     this.allowChipEditing = false,
     this.focusNode,
+    this.suggestionListBuilder = _defaultSuggestionListBuilder,
     this.initialSuggestions,
   })  : assert(maxChips == null || initialValue.length <= maxChips),
         super(key: key);
@@ -74,6 +79,7 @@ class ChipsInput<T> extends StatefulWidget {
   final bool autofocus;
   final bool allowChipEditing;
   final FocusNode? focusNode;
+  final SuggestionListBuilder suggestionListBuilder;
   final List<T>? initialSuggestions;
 
   // final Color cursorColor;
@@ -202,9 +208,9 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
           initialData: _suggestions,
           builder: (context, snapshot) {
             if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-              final suggestionsListView = Material(
-                elevation: 0,
-                child: ConstrainedBox(
+              final suggestionsListView = widget.suggestionListBuilder(
+                context,
+                ConstrainedBox(
                   constraints: BoxConstraints(
                     maxHeight: suggestionBoxHeight,
                   ),
@@ -289,6 +295,7 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         final renderBox = context.findRenderObject() as RenderBox;
         await Scrollable.of(context)?.position.ensureVisible(renderBox);
+        _suggestionsBoxController.overlayEntry?.markNeedsBuild();
       });
     });
   }
