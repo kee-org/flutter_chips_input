@@ -432,6 +432,9 @@ class ChipsInputState<T> extends State<ChipsInput<T>>
   AutofillScope? get currentAutofillScope => null;
 
   @override
+  void insertContent(content) {}
+
+  @override
   Widget build(BuildContext context) {
     _nodeAttachment.reparent();
     final chipsChildren = _chips
